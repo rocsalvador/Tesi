@@ -16,7 +16,8 @@ def draw_sphere_textures(x, y, radius):
             if (i >= 0 and i < n and j >= 0 and j < n and pow((pow((i - x), 2) + pow((j - y), 2)), 0.5) <= radius):
                 norm_x = abs(i - x)
                 norm_y = abs(j - y)
-                norm_z = pow(pow(radius, 2) - pow(norm_x, 2), 0.5)
+                xy_length = pow(pow(norm_x, 2) + pow(norm_y, 2), 0.5)
+                norm_z = pow(pow(radius, 2) - pow(xy_length, 2), 0.5)
                 unit_factor =  (norm_x + norm_y + norm_z)
                 norm_map[i, j] = [norm_x / unit_factor * 255, norm_y / unit_factor * 255, norm_z / unit_factor * 255]
 
