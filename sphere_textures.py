@@ -4,9 +4,11 @@ from PIL import Image
 
 n = 1024
 r = 40
+threshold_prob = 0.0001
+
 norm_map = np.zeros((n, n, 3), 'uint8')
 color_map = np.zeros((n, n, 3), 'uint8')
-roughness_map =  np.zeros((n, n, 3), 'uint8')
+roughness_map =  np.zeros((n, n), 'uint8')
 
 def draw_sphere_textures(x, y, radius):
     color = [random.uniform(0, 128), random.uniform(192, 255), random.uniform(0, 128)]
@@ -23,13 +25,13 @@ def draw_sphere_textures(x, y, radius):
 
                 color_map[i, j] = color
 
-                roughness_map[i, j] = [roughness] * 3
+                roughness_map[i, j] = roughness
+
 
 for i in range(0, n):
     for j in range(0, n):
-        threshold = random.uniform(0, 0.0001)
         rand = random.uniform(0, 1)
-        if rand <= threshold:
+        if rand <= threshold_prob:
             draw_sphere_textures(i, j, r)
 
 norm = Image.fromarray(norm_map, "RGB")
@@ -38,5 +40,5 @@ norm.save("norm_map.png")
 color = Image.fromarray(color_map, "RGB")
 color.save("color_map.png")
 
-roughness = Image.fromarray(roughness_map, "RGB")
+roughness = Image.fromarray(roughness_map, "L")
 roughness.save("roughness_map.png")
