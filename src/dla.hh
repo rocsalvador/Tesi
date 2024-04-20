@@ -1,3 +1,8 @@
+#ifndef DLA_HH
+#define DLA_HH
+
+#include "point.hh"
+
 #include <vector>
 #include <cstdlib>
 #include <string>
@@ -26,20 +31,22 @@ private:
     double countDistance;
 
     double boundingCircleRadius;
-    pair<double, double> boundingCircleCenter;
+    Point<double> boundingCircleCenter;
 
-    double eulcidianDistance(const pair<double, double>& p0, const pair<double, double>& p1);
+    double aggregationProbability(const Point<double> point);
 
-    double aggregationProbability(const pair<double, double> point);
+    vector<Point<double>> cluster;
 
-    vector<pair<double, double>> cluster;
+    Point<double> getRandomPoint();
 
-    pair<double, double> getRandomPoint();
-
-    bool aggregatePoint(pair<double, double>& point);
+    bool aggregatePoint(Point<double>& point);
 
 public:
     DLA(uint mapSize, double radius, double alpha, double sigma, double tau, double p);
 
-    void run(uint nPoints, string outFileName);
+    void run(uint nPoint);
+
+    vector<Point<double>> getPoints() const;
 };
+
+#endif

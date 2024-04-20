@@ -5,10 +5,10 @@ OBJ_DIR=obj
 SRC_FILES := $(wildcard $(SRC_DIR)/*.cc)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cc,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
-CXXFLAGS := -O2 -Wall -std=c++17
+CXXFLAGS := -O3 -Wall -std=c++17 -Iinclude/
 CC := g++
 
-TARGET=dla
+TARGET=lichens
 
 all: obj_dir $(TARGET)
 

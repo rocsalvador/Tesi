@@ -16,55 +16,49 @@ DLA::DLA(uint mapSize, double radius, double alpha, double sigma, double tau, do
     this->p = p;
     
     this->boundingCircleRadius = 4 * radius;
-    this->boundingCircleCenter = {mapSize / 2.0, mapSize / 2.0}; 
+    this->boundingCircleCenter = Point<double> (mapSize / 2.0, mapSize / 2.0); 
     this->generationDistance = boundingCircleRadius * 1.1;
     this->deathRadius = generationDistance * 1.1;
 }
 
-double DLA::eulcidianDistance(const pair<double, double>& p0, const pair<double, double>& p1)
-{
-    double distance = sqrt(pow(p0.first - p1.first, 2) + pow(p0.second - p1.second, 2));
-    return distance;
-}
-
-double DLA::aggregationProbability(const pair<double, double> point)
+double DLA::aggregationProbability(const Point<double> point)
 {
     uint count = 0;
-    for (const pair<double, double>& aggregatedPoint : cluster)
-        if (eulcidianDistance(point, aggregatedPoint) <= countDistance)
+    for (const Point<double>& aggregatedPoint : cluster)
+        if (Point<double>::euclidianDistance(point, aggregatedPoint) <= countDistance)
             ++count;
     return alpha + (1 - alpha) * pow(exp(1.0), - sigma * pow(count - tau, 2));
 }
 
-pair<double, double> DLA::getRandomPoint()
+Point<double> DLA::getRandomPoint()
 {
     double angle = 2 * M_PI * rand() / double(RAND_MAX);
-    double x = cos(angle) * generationDistance + boundingCircleCenter.first;
-    double y = sin(angle) * generationDistance + boundingCircleCenter.second;
+    double x = cos(angle) * generationDistance + boundingCircleCenter.getX();
+    double y = sin(angle) * generationDistance + boundingCircleCenter.getY();
 
     while (x < 0 or x >= mapSize or y < 0 or y >= mapSize)
     {
         angle = 2 * M_PI * rand() / double(RAND_MAX);
-        x = cos(angle) * generationDistance + boundingCircleCenter.first;
-        y = sin(angle) * generationDistance + boundingCircleCenter.second;
+        x = cos(angle) * generationDistance + boundingCircleCenter.getX();
+        y = sin(angle) * generationDistance + boundingCircleCenter.getY();
     }
     return {x, y};
 }
 
-bool DLA::aggregatePoint(pair<double, double>& point)
+bool DLA::aggregatePoint(Point<double>& point)
 {
     while (true)
     {
-        for (const pair<double, double>& aggregatedPoint : cluster)
+        for (const Point<double>& aggregatedPoint : cluster)
         {
-            if (eulcidianDistance(aggregatedPoint, point) <= aggregateDistance)
+            if (Point<double>::euclidianDistance(point, aggregatedPoint) <= aggregateDistance)
             {
                 double prob = aggregationProbability(point);
                 double r = rand() / double(RAND_MAX);
                 if (r <= prob)
                 {
                     cluster.push_back(point);
-                    double centerDistance = eulcidianDistance(point, boundingCircleCenter);
+                    double centerDistance = Point<double>::euclidianDistance(point, boundingCircleCenter);
                     if (centerDistance > boundingCircleRadius)
                     {
                         boundingCircleRadius = centerDistance;
@@ -79,25 +73,26 @@ bool DLA::aggregatePoint(pair<double, double>& point)
         }
 
         double angle = 2 * M_PI * rand() / double(RAND_MAX);
-        double x = cos(angle) * moveDistance + point.first;
-        double y = sin(angle) * moveDistance + point.second;
+        double x = cos(angle) * moveDistance + point.getX();
+        double y = sin(angle) * moveDistance + point.getY();
 
         while (x < 0 or x >= mapSize or y < 0 or y >= mapSize)
         {
             angle = 2 * M_PI * rand() / double(RAND_MAX);
-            x = cos(angle) * moveDistance + point.first;
-            y = sin(angle) * moveDistance + point.second;
+            x = cos(angle) * moveDistance + point.getX();
+            y = sin(angle) * moveDistance + point.getY();
         }
 
-        point = {x, y};
+        point = Point(x, y);
 
-        if (eulcidianDistance(point, boundingCircleCenter) > deathRadius)
+        if (Point<double>::euclidianDistance(point, boundingCircleCenter) > deathRadius)
             return false;
     }
 }
 
-void DLA::run(uint nPoints, string outFileName)
+void DLA::run(uint nPoints)
 {
+    cout << "[DLA] Starting dla with " << nPoints << " points" << endl;
     double center = mapSize / 2.0;
     cluster.push_back({center, center});
 
@@ -105,20 +100,18 @@ void DLA::run(uint nPoints, string outFileName)
 
     for (uint i = 1; i <= nPoints; ++i)
     {
-        pair<double, double> point = getRandomPoint();
+        Point<double> point = getRandomPoint();
         while (not aggregatePoint(point))
         {
             point = getRandomPoint();
         }
 
         if (i % tenth == 0)
-            cout << "Added " << i << " points" << endl;
+            cout << "[DLA] Added " << i << " points" << endl;
     }
+}
 
-    ofstream outFile(outFileName);
-    outFile << radius << endl;
-    for (const pair<double, double>& point : cluster)
-    {
-        outFile << point.first << " " << point.second << endl;
-    }
+vector<Point<double>> DLA::getPoints() const
+{
+    return cluster;
 }
