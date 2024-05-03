@@ -2,6 +2,7 @@
 #define POINT_HH
 
 #include <cmath>
+#include <ostream>
 using namespace std;
 
 template<class T>
@@ -11,7 +12,20 @@ private:
     T x, y;
 
 public:
+    template<class T2>
+    Point(const Point<T2> &t2)
+    {
+        this->x = t2.getX();
+        this->y = t2.getY();
+    }
+
     void operator=(pair<T, T> pair);
+
+    bool operator==(const Point<T>& p2) const;
+
+    bool operator!=(const Point<T>& p2) const;
+
+    Point(pair<T, T> p);
 
     Point();
 

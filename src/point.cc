@@ -13,6 +13,25 @@ void Point<T>::operator=(pair<T, T> pair)
 }
 
 template<class T>
+Point<T>::Point(pair<T, T> p)
+{
+    this->x = p.first;
+    this->y = p.second;
+}
+
+template<class T>
+bool Point<T>::operator==(const Point<T>& p2) const
+{
+    return (this->getX() == p2.getX()) and (this->getY() == p2.getY());
+}
+
+template<class T>
+bool Point<T>::operator!=(const Point<T>& p2) const
+{
+    return (not (this->getX() == p2.getX())) or (not (this->getY() == p2.getY()));
+}
+
+template<class T>
 Point<T>::Point() {}
 
 template<class T>
