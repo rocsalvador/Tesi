@@ -8,6 +8,17 @@
 #include <limits>
 using namespace std;
 
+struct comp {
+    constexpr bool operator()(
+        pair<double, Point<int>> const& a,
+        pair<double, Point<int>> const& b)
+        const noexcept
+    {
+        return a.first > b.first;
+    }
+};
+ 
+
 class KMeans 
 {
 private:
@@ -23,7 +34,7 @@ private:
 
     vector<vector<Point<int>>> clusters;
 
-    vector<queue<Point<int>>> clustersQueues;
+    vector<priority_queue<pair<double, Point<int>>, vector<pair<double, Point<int>>>, comp>>  clustersQueues;
 
     vector<vector<Point<int>>> clustersEdges;
 

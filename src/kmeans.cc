@@ -11,7 +11,7 @@ KMeans::KMeans(const vector<Point<int>>& paramPoints, int k, const vector<Point<
         this->centroids = vector<Point<int>> (k);
     else    
         this->centroids = centroids;
-    this->clustersQueues = vector<queue<Point<int>>> (k);
+    this->clustersQueues = vector<priority_queue<pair<double, Point<int>>, vector<pair<double, Point<int>>>, comp>> (k);
     this->clustersEdges = vector<vector<Point<int>>> (k);
     this->points = paramPoints;
     this->maxValue = 0;
@@ -36,49 +36,49 @@ void KMeans::assignClusters()
 
     for (int i = 0; i < k; ++i)
     {
-        clustersQueues[i].push(centroids[i]);
+        clustersQueues[i].push({0, centroids[i]});
     }
 
     bool allQueuesEmpty = false;
+    double maxDistance = 1;
     while (not allQueuesEmpty)
     {
         allQueuesEmpty = true;
         for (int i = 0; i < k; ++i)
         {
-            queue<Point<int>> newQueue;
             while (clustersQueues[i].size() > 0)
             {
                 allQueuesEmpty = false;
-                Point<int> point = clustersQueues[i].front();
+                Point<int> point = clustersQueues[i].top().second;
+                double d = clustersQueues[i].top().first;
+                if (d > maxDistance)
+                    break;
                 clustersQueues[i].pop();
-                clusters[i].push_back(point);
                 int x = point.getX();
                 int y = point.getY();
+                if (map[x][y])
+                {
+                    map[x][y] = false;
+                    clusters[i].push_back(point);
 
-                if (x > 0 and map[x - 1][y])
-                {
-                    newQueue.push(Point<int>(x - 1, y));
-                    map[x - 1][y] = false;
-                }
-                if (y > 0 and map[x][y - 1])
-                {
-                    newQueue.push(Point<int>(x, y - 1));
-                    map[x][y - 1] = false;
-                }
-                if (x < maxValue and map[x + 1][y])
-                {
-                    newQueue.push(Point<int>(x + 1, y));
-                    map[x + 1][y] = false;
-                }
-                if (y < maxValue and map[x][y + 1])
-                {
-                    newQueue.push(Point<int>(x, y + 1));
-                    map[x][y + 1] = false;
+                    for (uint j = max(x - 1, 0); j <= min(maxValue, x + 1); ++j)
+                    {
+                        for (uint l = max(y - 1, 0); l <= min(maxValue, y + 1); ++l)
+                        {
+                            if (map[j][l])
+                            {
+                                double off = 1;
+                                if (((j == x + 1 or j == x - 1) and (l == y - 1 or l == y + 1)))
+                                    off = 1.41421356237;
+                                clustersQueues[i].push({d + off, {j, l}});
+                            }
+                        }
+                    }
                 }
             }
 
-            clustersQueues[i] = newQueue;
         }
+        ++maxDistance;
     }
 }
 

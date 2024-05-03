@@ -50,6 +50,7 @@ void runKMeans(const unordered_map<string, string>& configMap, const vector<Poin
     int k = stoi(configMap.find("k")->second);
     int mapSize = stoi(configMap.find("img_size")->second);
     int minClusterSize = stoi(configMap.find("min_cluster_size")->second);
+    string imgDir = configMap.find("img_dir")->second;
 
     KMeans kmeans(drawnPoints, k);
     kmeans.run(maxIt);
@@ -68,7 +69,7 @@ void runKMeans(const unordered_map<string, string>& configMap, const vector<Poin
                                       uint8_t(rand() / double(RAND_MAX) * 255)});
     }
     textures.drawPoints(centroids, {255, 0, 0});
-    textures.save("img", "first_");
+    textures.save(imgDir, "first_");
 
     for (uint j = 0; j < k; ++j)
     {
@@ -76,7 +77,7 @@ void runKMeans(const unordered_map<string, string>& configMap, const vector<Poin
         if (clusterSize > 1)
         {
             double clusterRatio = clusterRatios[j];
-            bool isCircle = clusterRatio >= 0.8;
+            bool isCircle = clusterRatio >= 0.9;
             modifiedCluster[j] = true;
             int it = 1;
             int newK = 2;
@@ -113,7 +114,7 @@ void runKMeans(const unordered_map<string, string>& configMap, const vector<Poin
                                           uint8_t(rand() / double(RAND_MAX) * 255)});
     }
     textures.drawPoints(centroids, {255, 0, 0});
-    textures.save("img", "final_");
+    textures.save(imgDir, "final_");
 }
 
 int main(int argc, char** argv)
