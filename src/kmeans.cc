@@ -7,13 +7,21 @@ KMeans::KMeans(const vector<Point<int>>& paramPoints, int k, const vector<Point<
 {
     this->k = k;
     this->clusters = vector<vector<Point<int>>> (k);
+    this->points = paramPoints;
     if (centroids.size() != k)
+    {
+        // Initialize centroids in random points
         this->centroids = vector<Point<int>> (k);
+        for (int i = 0; i < k; ++i)
+        {
+            int randIdx = rand() / double(RAND_MAX) * (points.size() - 1);
+            this->centroids[i] = points[randIdx]; 
+        }
+    }
     else    
         this->centroids = centroids;
     this->clustersQueues = vector<priority_queue<pair<double, Point<int>>, vector<pair<double, Point<int>>>, comp>> (k);
     this->clustersEdges = vector<vector<Point<int>>> (k);
-    this->points = paramPoints;
     this->maxValue = 0;
     for (const Point<int>& point : this->points)
         this->maxValue = max(maxValue, max(point.getX(), point.getY()));
@@ -89,48 +97,45 @@ double KMeans::clusterCircleRatio(int i)
     return 4 * M_PI * area / (perimeter * perimeter);
 }
 
-void KMeans::computeEdges()
+void KMeans::computeEdges(uint i)
 {
-    for (uint i = 0; i < k; ++i)
+    clustersEdges[i] = vector<Point<int>> (0);
+    vector<vector<bool>> clusterMap(maxValue + 1, vector<bool> (maxValue + 1, false));
+    for (const Point<int>& point : clusters[i])
+        clusterMap[point.getX()][point.getY()] = true;
+    for (const Point<int>& point : clusters[i])
     {
-        clustersEdges[i] = vector<Point<int>> (0);
-        vector<vector<bool>> clusterMap(maxValue + 1, vector<bool> (maxValue + 1, false));
-        for (const Point<int>& point : clusters[i])
-            clusterMap[point.getX()][point.getY()] = true;
-        for (const Point<int>& point : clusters[i])
+        int x = point.getX();
+        int y = point.getY();
+        if (x > 0 and not clusterMap[x  - 1][y])
         {
-            int x = point.getX();
-            int y = point.getY();
-            if (x > 0 and not clusterMap[x  - 1][y])
-            {
-                clustersEdges[i].push_back(point);
-                continue;
-            }
-            if (x < maxValue and not clusterMap[x  + 1][y])
-            {
-                clustersEdges[i].push_back(point);
-                continue;
-            }
-            if (y > 0 and not clusterMap[x][y - 1])
-            {
-                clustersEdges[i].push_back(point);
-                continue;
-            }
-            if (y < maxValue and not clusterMap[x][y + 1])
-            {
-                clustersEdges[i].push_back(point);
-                continue;
-            }
+            clustersEdges[i].push_back(point);
+            continue;
+        }
+        if (x < maxValue and not clusterMap[x  + 1][y])
+        {
+            clustersEdges[i].push_back(point);
+            continue;
+        }
+        if (y > 0 and not clusterMap[x][y - 1])
+        {
+            clustersEdges[i].push_back(point);
+            continue;
+        }
+        if (y < maxValue and not clusterMap[x][y + 1])
+        {
+            clustersEdges[i].push_back(point);
+            continue;
         }
     }
 }
 
 void KMeans::computeCentroids()
 {
-    computeEdges();
-
     for (uint i = 0; i < k; ++i)
     {
+        computeEdges(i);
+
         double maxDistance = 0;
         Point<int> centroid;
         for (const Point<int>& point : clusters[i])
@@ -151,16 +156,10 @@ void KMeans::computeCentroids()
 
 bool KMeans::areVectorsEqual(const vector<Point<int>>& v1, const vector<Point<int>>& v2)
 {
-    bool equal = true;
     for (uint i = 0; i < k; ++i)
-    {
         if (v1[i] != v2[i])
-        {
-            equal = false;
-            break;
-        }
-    }
-    return equal;
+            return false;
+    return true;
 }
 
 void KMeans::runIteration()
@@ -174,15 +173,6 @@ void KMeans::runIteration()
 
 void KMeans::run(int maxIt)
 {
-    cout << "[KMeans] Starting KMeans with max it " << maxIt << endl;
-    // Initialize centroids in random points
-    for (int i = 0; i < k; ++i)
-    {
-        int randIdx = rand() / double(RAND_MAX) * (points.size() - 1);
-        centroids[i] = points[randIdx]; 
-    }
-    int tenth = maxIt / 10;
-
     runIteration();
 
     int i = 1;
@@ -190,10 +180,27 @@ void KMeans::run(int maxIt)
     while (i < maxIt and not areVectorsEqual(centroids, oldCentroids))
     {
         runIteration();
+        ++i;
+    }
+}
+
+void KMeans::run(int maxIt, double minCircularity)
+{
+    runIteration();
+
+    bool areClustersCircles = true;
+    for (uint j = 0; j < k; ++j)
+        areClustersCircles = areClustersCircles and (clusterCircleRatio(j) >= minCircularity);
+    int i = 1;
+    while (i < maxIt and (not areClustersCircles) and (not areVectorsEqual(centroids, oldCentroids)))
+    {
+        runIteration();
+        
+        areClustersCircles = true;
+        for (uint j = 0; j < k; ++j)
+            areClustersCircles = areClustersCircles and (clusterCircleRatio(j) >= minCircularity);
 
         ++i;
-        if (tenth > 0 and i % tenth == 0)
-            cout << "[KMeans] Iteration " << i << endl;
     }
 }
 

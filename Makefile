@@ -5,7 +5,7 @@ OBJ_DIR=obj
 SRC_FILES := $(wildcard $(SRC_DIR)/*.cc)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cc,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
-CXXFLAGS := -O3 -Wall -std=c++17 -Iinclude/
+CXXFLAGS := -O3 -Wall -std=c++17 -Iinclude/ -g 
 CC := g++
 
 TARGET=lichens

@@ -39,7 +39,9 @@ public:
 
     void setY(T y);
 
-    static double euclidianDistance(Point p1, Point p2);
+    static double euclidianDistance(const Point<T>& p1, const Point<T>& p2);
+
+    static double sqEuclidianDistance(const Point<T>& p1, const Point<T>& p2);
 };
 
 #endif

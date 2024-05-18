@@ -46,7 +46,7 @@ private:
 
     void computeCentroids();
 
-    void computeEdges();
+    void computeEdges(uint i);
 
     bool areVectorsEqual(const vector<Point<int>>& v1, const vector<Point<int>>& v2);
 
@@ -58,6 +58,8 @@ public:
     double clusterCircleRatio(int i);
 
     void run(int maxIt);
+
+    void run(int maxIt, double minCircularity);
 
     vector<vector<Point<int>>> getClusters();
 

@@ -66,8 +66,15 @@ void Point<T>::setY(T y)
 }
 
 template<class T>
-double Point<T>::euclidianDistance(Point<T> p1, Point<T> p2)
+double Point<T>::euclidianDistance(const Point<T>& p1, const Point<T>& p2)
 {
-    double distance = sqrt(pow(p1.getX() - p2.getX(), 2) + pow(p1.getY() - p2.getY(), 2));
+    double distance = sqrt(sqEuclidianDistance(p1, p2));
+    return distance;
+}
+
+template<class T>
+double Point<T>::sqEuclidianDistance(const Point<T>& p1, const Point<T>& p2)
+{
+    double distance = pow(p1.getX() - p2.getX(), 2) + pow(p1.getY() - p2.getY(), 2);
     return distance;
 }
