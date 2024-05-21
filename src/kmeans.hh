@@ -40,7 +40,7 @@ private:
 
     vector<vector<bool>> map;
 
-    vector<vector<uint8_t>> clustersColor;
+    vector<double> clustersRatios;
 
     void assignClusters();
 
@@ -51,6 +51,8 @@ private:
     bool areVectorsEqual(const vector<Point<int>>& v1, const vector<Point<int>>& v2);
 
     void runIteration();
+
+    void computeClusterRatio(uint i);
 
 public:
     KMeans(const vector<Point<int>>& points, int k,  const vector<Point<int>>& centroids = vector<Point<int>> ());

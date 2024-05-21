@@ -49,6 +49,8 @@ bool ConvexHull::compare(const Point<int> &p1, const Point<int> &p2)
 void ConvexHull::computeConvexHull()
 {
     int n = points.size();
+    if (n == 0)
+        return;
     int ymin = points[0].getY(), minimum = 0;
     for (int i = 1; i < n; i++)
     {
@@ -91,7 +93,8 @@ void ConvexHull::computeConvexHull()
         S.push(points[i]);
     }
 
-    contour = vector<Point<int>>(S.size());
+    contour = vector<Point<int>> (S.size());
+    sideLength = vector<double> (S.size());
     uint i = 0;
     minDistance = numeric_limits<double>::max();
     perimeter = 0;
@@ -103,6 +106,7 @@ void ConvexHull::computeConvexHull()
         if (i != 0)
         {
             double distance = Point<int>::euclidianDistance(contour[i], contour[i - 1]);
+            sideLength[i - 1] = distance;
             perimeter += distance;
             minDistance = min(distance, minDistance);
         }
@@ -110,6 +114,7 @@ void ConvexHull::computeConvexHull()
     }
 
     double distance = Point<int>::euclidianDistance(contour[contour.size() - 1], contour[0]);
+    sideLength[contour.size() - 1] = distance;
     perimeter += distance;
     minDistance = min(distance, minDistance);
 }
@@ -117,6 +122,16 @@ void ConvexHull::computeConvexHull()
 vector<Point<int>> ConvexHull::getContour()
 {
     return contour;
+}
+
+double ConvexHull::getPerimeter() const
+{
+    return perimeter;
+}
+
+double ConvexHull::getSideLength(uint i) const
+{
+    return sideLength[i];
 }
 
 double ConvexHull::angle(const Point<int> &p1, const Point<int> &p2, const Point<int> &p3)
@@ -142,19 +157,17 @@ vector<double> ConvexHull::computeMVC(const Point<int> &point)
     vector<double> magnitudes(n);
     vector<double> halfTangents(n);
 
-    magnitudes[0] = Point<int>::euclidianDistance(point, contour[0]);
     for (int i = 0; i < n; ++i)
     {
         int next = (i + 1) % n;
+
+        magnitudes[i] = Point<int>::euclidianDistance(point, contour[i]);
+        // Case when the point is the same as the current edge
         if (magnitudes[i] < 1)
         {
             weights[i] = 1;
             return weights;
         }
-
-        magnitudes[next] = Point<int>::euclidianDistance(point, contour[next]);
-        if (magnitudes[next] < 1)
-            return vector<double> (n, 0);
 
         double a = angle(contour[i], point, contour[next]);
         halfTangents[i] = tan(a * 0.5);

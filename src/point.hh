@@ -23,6 +23,8 @@ public:
 
     bool operator==(const Point<T>& p2) const;
 
+    void operator+=(const Point<T>& p2);
+
     bool operator!=(const Point<T>& p2) const;
 
     Point(pair<T, T> p);

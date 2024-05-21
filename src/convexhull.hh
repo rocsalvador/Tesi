@@ -18,6 +18,7 @@ private:
     vector<Point<int>> points;
     Point<int> p0;
     vector<Point<int>> contour;
+    vector<double> sideLength;
 
     int orientation(Point<int> p, Point<int> q, Point<int> r);
 
@@ -37,6 +38,10 @@ public:
     void computeConvexHull();
 
     vector<double> computeMVC(const Point<int>& point);
+
+    double getSideLength(uint i) const;
+
+    double getPerimeter() const;
 };
 
 #endif

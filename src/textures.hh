@@ -27,6 +27,8 @@ private:
 public:
     Textures(int width, int height);
 
+    Textures();
+
     /**
      * @brief Reads the provided txt filename where each line contains the x and the y
      * coordinates of the center point of the circle separated by a space
@@ -46,6 +48,10 @@ public:
     void drawCircle(const Point<int>& point, vector<uint8_t> color, int radius, bool computeNormals = false);
 
     void drawCircles(const vector<Point<int>>& points, vector<uint8_t> color, int radius, bool computeNormals = false);
+
+    void drawLine(Point<int> a, Point<int> b, vector<uint8_t> color);
+
+    int getHeight() const;
 
     vector<uint8_t> getNormal(const Point<int>& point);
 

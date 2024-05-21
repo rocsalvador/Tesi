@@ -14,14 +14,14 @@ using namespace std;
 class DLA
 {
 private:
-    uint mapSize;
-
     // Lichens behaviour parameters
     double radius;
     double generationDistance;
     double deathRadius;
     double aggregateDistance;
     double moveDistance;
+
+    double maxCoord;
 
     // Aggregation probability parameters
     double alpha;
@@ -42,11 +42,13 @@ private:
     bool aggregatePoint(Point<double>& point);
 
 public:
-    DLA(uint mapSize, double radius, double alpha, double sigma, double tau, double p);
+    DLA(double radius, double alpha, double sigma, double tau, double p);
 
     void run(uint nPoint);
 
     vector<Point<double>> getPoints() const;
+
+    double getMaxCoord() const;
 };
 
 #endif

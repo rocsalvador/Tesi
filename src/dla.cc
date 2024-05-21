@@ -1,10 +1,8 @@
 #include "dla.hh"
 #include <iostream>
 
-DLA::DLA(uint mapSize, double radius, double alpha, double sigma, double tau, double p)
+DLA::DLA(double radius, double alpha, double sigma, double tau, double p)
 {
-    this->mapSize = mapSize;
-
     this->radius = radius;
     this->aggregateDistance = radius;
     this->moveDistance = radius;
@@ -16,9 +14,10 @@ DLA::DLA(uint mapSize, double radius, double alpha, double sigma, double tau, do
     this->p = p;
     
     this->boundingCircleRadius = 4 * radius;
-    this->boundingCircleCenter = Point<double> (mapSize / 2.0, mapSize / 2.0); 
+    this->boundingCircleCenter = Point<double> (0, 0); 
+    this->maxCoord = 0;
     this->generationDistance = boundingCircleRadius * 1.1;
-    this->deathRadius = generationDistance * 1.1;
+    this->deathRadius = boundingCircleRadius * 1.2;
 }
 
 double DLA::aggregationProbability(const Point<double> point)
@@ -36,13 +35,12 @@ Point<double> DLA::getRandomPoint()
     double x = cos(angle) * generationDistance + boundingCircleCenter.getX();
     double y = sin(angle) * generationDistance + boundingCircleCenter.getY();
 
-    while (x < 0 or x >= mapSize or y < 0 or y >= mapSize)
-    {
-        angle = 2 * M_PI * rand() / double(RAND_MAX);
-        x = cos(angle) * generationDistance + boundingCircleCenter.getX();
-        y = sin(angle) * generationDistance + boundingCircleCenter.getY();
-    }
     return {x, y};
+}
+
+double DLA::getMaxCoord() const
+{
+    return maxCoord;
 }
 
 bool DLA::aggregatePoint(Point<double>& point)
@@ -58,12 +56,13 @@ bool DLA::aggregatePoint(Point<double>& point)
                 if (r <= prob)
                 {
                     cluster.push_back(point);
+                    maxCoord = max(max(abs(point.getX()), maxCoord), abs(point.getY()));
                     double centerDistance = Point<double>::euclidianDistance(point, boundingCircleCenter);
                     if (centerDistance > boundingCircleRadius)
                     {
                         boundingCircleRadius = centerDistance;
                         generationDistance = boundingCircleRadius * 1.1;
-                        deathRadius =  generationDistance * 1.1;
+                        deathRadius = boundingCircleRadius * 1.2;
                     }
                     return true;
                 }
@@ -76,13 +75,6 @@ bool DLA::aggregatePoint(Point<double>& point)
         double x = cos(angle) * moveDistance + point.getX();
         double y = sin(angle) * moveDistance + point.getY();
 
-        while (x < 0 or x >= mapSize or y < 0 or y >= mapSize)
-        {
-            angle = 2 * M_PI * rand() / double(RAND_MAX);
-            x = cos(angle) * moveDistance + point.getX();
-            y = sin(angle) * moveDistance + point.getY();
-        }
-
         point = Point(x, y);
 
         if (Point<double>::euclidianDistance(point, boundingCircleCenter) > deathRadius)
@@ -93,8 +85,7 @@ bool DLA::aggregatePoint(Point<double>& point)
 void DLA::run(uint nPoints)
 {
     cout << "[DLA] Starting dla with " << nPoints << " points" << endl;
-    double center = mapSize / 2.0;
-    cluster.push_back({center, center});
+    cluster.push_back(boundingCircleCenter);
 
     uint tenth = nPoints / 10;
 

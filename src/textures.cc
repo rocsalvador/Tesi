@@ -12,6 +12,8 @@ Textures::Textures(int width, int height)
     normalMap = vector<vector<vector<uint8_t>>> (height, vector<vector<uint8_t>> (width, vector<uint8_t> (3, 0)));
 }
 
+Textures::Textures() {}
+
 vector<double> Textures::computeNormal(const Point<int>& point, const Point<int>& center, int radius)
 {
     // int i = point.getX();
@@ -65,9 +67,9 @@ void Textures::drawCircle(const Point<int>& point, vector<uint8_t> color, int ra
                 if (computeNormals)
                 {
                     vector<double> normals = computeNormal({i, j}, point, radius);
-                    normalMap[i][j] = {uint8_t(normals[0] * 255),
-                                       uint8_t(normals[1] * 255),
-                                       uint8_t(normals[2] * 255)};
+                    normalMap[i][j] = {uint8_t(63.5 + normals[0] * 191.5),
+                                       uint8_t(63.5 + normals[1] * 191.5),
+                                       uint8_t(63.5 + normals[2] * 191.5)};
                 }
             }
             
@@ -84,10 +86,9 @@ void Textures::drawCircle(const Point<int>& point, vector<uint8_t> color, int ra
                 if (computeNormals)
                 {
                     vector<double> normals = computeNormal({i_inv, j}, point, radius);
-                    normalMap[i_inv][j] = {uint8_t(normals[0] * 255),
-                                       uint8_t(normals[1] * 255),
-                                       uint8_t(normals[2] * 255)};
-                }
+                    normalMap[i_inv][j] = {uint8_t(63.5 + normals[0] * 191.5),
+                                       uint8_t(63.5 + normals[1] * 191.5),
+                                       uint8_t(63.5 + normals[2] * 191.5)};                }
             }
 
             ++i;
@@ -105,6 +106,33 @@ void Textures::drawCircles(const vector<Point<int>>& points, vector<uint8_t> col
     }
 }
 
+void Textures::drawLine(Point<int> a, Point<int> b, vector<uint8_t> color)
+{
+    int x1 = a.getX(), y1 = a.getY();
+    int x2 = b.getX(), y2 = b.getY();
+
+    int dx = x2 - x1; 
+    int dy = y2 - y1; 
+  
+    int steps = abs(dx) > abs(dy) ? abs(dx) : abs(dy); 
+  
+    float xinc = dx / (float)steps; 
+    float yinc = dy / (float)steps; 
+  
+    float x = x1; 
+    float y = y1; 
+    for (int i = 0; i <= steps; i++) { 
+        if (not drawnMap[x][y])
+        {
+            drawnPoints.push_back({x, y});
+            drawnMap[x][y] = true;
+        }
+        colorMap[x][y] = color;
+        x += xinc;
+        y += yinc;
+    } 
+}
+
 void Textures::readSphereCenterPoints(string filename,  vector<uint8_t> color, int radius)
 {
     ifstream centersFile(filename);
@@ -114,7 +142,16 @@ void Textures::readSphereCenterPoints(string filename,  vector<uint8_t> color, i
         return;
     }
 
-    double x, y;
+    int mapSize;
+    centersFile >> mapSize;
+    this->height = mapSize;
+    this->width = mapSize;
+
+    drawnMap = vector<vector<bool>> (height, vector<bool> (width, false));
+    colorMap = vector<vector<vector<uint8_t>>> (height, vector<vector<uint8_t>> (width, vector<uint8_t> (3, 0)));
+    normalMap = vector<vector<vector<uint8_t>>> (height, vector<vector<uint8_t>> (width, vector<uint8_t> (3, 0)));
+
+    int x, y;
     while (centersFile >> x and centersFile >> y)
     {
         drawCircle({x, y}, color, radius);
@@ -131,13 +168,19 @@ void Textures::drawPoints(const vector<Point<int>>& points, vector<uint8_t> colo
 
 void Textures::drawPoint(const Point<int>& point, vector<uint8_t> color)
 {
-
+    if (point.getX() >= height or point.getX() < 0 or point.getY() >= width or point.getY() < 0)
+        return;
     colorMap[point.getX()][point.getY()] = color;
 }
 
 const vector<Point<int>>& Textures::getDrawnPoints()
 {
     return drawnPoints;
+}
+
+int Textures::getHeight() const
+{
+    return height;
 }
 
 vector<uint8_t> Textures::getNormal(const Point<int>& point)

@@ -26,20 +26,19 @@ KMeans::KMeans(const vector<Point<int>>& paramPoints, int k, const vector<Point<
     for (const Point<int>& point : this->points)
         this->maxValue = max(maxValue, max(point.getX(), point.getY()));
     this->map = vector<vector<bool>> (maxValue + 1, vector<bool> (maxValue + 1, false));
-    clustersColor = vector<vector<uint8_t>> (k, vector<uint8_t> (3));
-    for (uint i = 0; i < k; ++i)
-        clustersColor[i] = {uint8_t(rand() / double(RAND_MAX) * 255),
-                            uint8_t(rand() / double(RAND_MAX) * 255),
-                            uint8_t(rand() / double(RAND_MAX) * 255)};
+    this->clustersRatios = vector<double> (k);
 }
 
 void KMeans::assignClusters()
 {
     clusters = vector<vector<Point<int>>> (k);
     map = vector<vector<bool>> (maxValue + 1, vector<bool> (maxValue + 1, false));
+    vector<vector<bool>> ogMap(maxValue + 1, vector<bool> (maxValue + 1, false));
+
     for (const Point<int>& point : points)
     {
         map[point.getX()][point.getY()] = true;
+        ogMap[point.getX()][point.getY()] = true;
     }
 
     for (int i = 0; i < k; ++i)
@@ -77,7 +76,11 @@ void KMeans::assignClusters()
                             {
                                 double off = 1;
                                 if (((j == x + 1 or j == x - 1) and (l == y - 1 or l == y + 1)))
+                                {
+                                    if (not map[x][l] and not map[j][y])
+                                        continue;
                                     off = 1.41421356237;
+                                }
                                 clustersQueues[i].push({d + off, {j, l}});
                             }
                         }
@@ -90,11 +93,16 @@ void KMeans::assignClusters()
     }
 }
 
-double KMeans::clusterCircleRatio(int i)
+void KMeans::computeClusterRatio(uint i)
 {
     double area = clusters[i].size();
     double perimeter = clustersEdges[i].size();
-    return 4 * M_PI * area / (perimeter * perimeter);
+    clustersRatios[i] = 4 * M_PI * area / (perimeter * perimeter);
+}
+
+double KMeans::clusterCircleRatio(int i)
+{
+    return clustersRatios[i];
 }
 
 void KMeans::computeEdges(uint i)
@@ -128,6 +136,8 @@ void KMeans::computeEdges(uint i)
             continue;
         }
     }
+
+    computeClusterRatio(i);
 }
 
 void KMeans::computeCentroids()
@@ -176,7 +186,6 @@ void KMeans::run(int maxIt)
     runIteration();
 
     int i = 1;
-    Textures textures(maxValue + 1, maxValue + 1);
     while (i < maxIt and not areVectorsEqual(centroids, oldCentroids))
     {
         runIteration();
@@ -190,7 +199,7 @@ void KMeans::run(int maxIt, double minCircularity)
 
     bool areClustersCircles = true;
     for (uint j = 0; j < k; ++j)
-        areClustersCircles = areClustersCircles and (clusterCircleRatio(j) >= minCircularity);
+        areClustersCircles = areClustersCircles and (clustersRatios[j] >= minCircularity);
     int i = 1;
     while (i < maxIt and (not areClustersCircles) and (not areVectorsEqual(centroids, oldCentroids)))
     {
@@ -198,7 +207,7 @@ void KMeans::run(int maxIt, double minCircularity)
         
         areClustersCircles = true;
         for (uint j = 0; j < k; ++j)
-            areClustersCircles = areClustersCircles and (clusterCircleRatio(j) >= minCircularity);
+            areClustersCircles = areClustersCircles and (clustersRatios[j] >= minCircularity);
 
         ++i;
     }

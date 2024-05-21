@@ -26,6 +26,14 @@ bool Point<T>::operator==(const Point<T>& p2) const
 }
 
 template<class T>
+void Point<T>::operator+=(const Point<T>& p2)
+{
+    x += p2.getX();
+    y += p2.getY();
+}
+
+
+template<class T>
 bool Point<T>::operator!=(const Point<T>& p2) const
 {
     return (not (this->getX() == p2.getX())) or (not (this->getY() == p2.getY()));
