@@ -164,6 +164,65 @@ void textureParametrizaion(const unordered_map<string, string>& configMap, const
     Point<int> center = {500, 500};
     double radius = 400;
     circle.drawCircle(center, {255, 0, 0}, radius, true);
+
+    Image lichen;
+    vector<vector<vector<uint8_t>>> lichenColorMap = lichen.load("lichen.png");
+    int height = lichenColorMap.size();
+    int width = lichenColorMap[0].size();
+    Textures lichenTexture(height, width);
+    for (int i = 0; i < height; ++i)
+    {
+        for (int j = 0; j < width; ++j)
+        {
+            bool black = true;
+            for (int k = 0; k < 3; ++k)
+            {
+                if (lichenColorMap[i][j][k] > 20)
+                {
+                    black = false;
+                    break;
+                }
+            }
+            if (not black)
+                lichenTexture.drawPoint({i, j}, lichenColorMap[i][j]);
+        }
+    }
+    ConvexHull lichenConvexHull(lichenTexture.getDrawnPoints());
+    lichenConvexHull.computeConvexHull();
+    cout << lichenTexture.getDrawnPoints().size() << endl;
+    vector<Point<int>> lichenContour = lichenConvexHull.getContour();
+
+    uint contourSize = lichenContour.size();
+    vector<Point<int>> circleHull = vector<Point<int>> (contourSize);
+    double currentAngle = 0;
+    double perimeter = lichenConvexHull.getPerimeter();
+    for (uint i = 0; i < contourSize; ++i)
+    {
+        int x = cos(currentAngle) * radius + center.getX();
+        int y = sin(currentAngle) * radius + center.getY();
+        circleHull[i] = Point<int>(x, y);
+        currentAngle += (lichenConvexHull.getSideLength(i) / perimeter) * 2 * M_PI;
+    }
+
+    ConvexHull circleConvexHull;
+    circleConvexHull.setContour(circleHull);
+    vector<Point<int>> circleDrawnPoints = circle.getDrawnPoints();
+    for (const Point<int>& point : circleDrawnPoints)
+    {
+        vector<double> weights = circleConvexHull.computeMVC(point);
+        Point<int> targetPoint = {0, 0};
+        for (uint i = 0; i < contourSize; ++i)
+        {
+            if (isnan(weights[i]))
+                break;
+            int x = targetPoint.getX() + lichenContour[i].getX() * weights[i];
+            int y = targetPoint.getY() + lichenContour[i].getY() * weights[i];
+            targetPoint = Point<int>(x, y);
+        }
+        circle.drawPoint(point, lichenTexture.getColor(targetPoint));
+    }
+    circle.save(imgDir, "circle_proxy_");
+
     for (uint i = 0; i < clusters.size(); ++i)
     {
         ConvexHull convexHull(clusters[i]);
@@ -197,7 +256,7 @@ void textureParametrizaion(const unordered_map<string, string>& configMap, const
                 int y = targetPoint.getY() + circleHull[i].getY() * weights[i];
                 targetPoint = Point<int>(x, y);
             }
-            textures.drawPoint(point, circle.getNormal(targetPoint));
+            textures.drawPoint(point, circle.getColor(targetPoint));
         }
 
         vector<uint8_t> color = {uint8_t(rand() / double(RAND_MAX) * 255),

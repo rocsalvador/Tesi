@@ -1,5 +1,7 @@
 #include "convexhull.hh"
 
+ConvexHull::ConvexHull() {}
+
 ConvexHull::ConvexHull(const vector<Point<int>> &points)
 {
     this->points = points;
@@ -132,6 +134,11 @@ double ConvexHull::getPerimeter() const
 double ConvexHull::getSideLength(uint i) const
 {
     return sideLength[i];
+}
+
+void ConvexHull::setContour(const vector<Point<int>>& contour)
+{
+    this->contour = contour;
 }
 
 double ConvexHull::angle(const Point<int> &p1, const Point<int> &p2, const Point<int> &p3)

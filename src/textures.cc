@@ -171,6 +171,11 @@ void Textures::drawPoint(const Point<int>& point, vector<uint8_t> color)
     if (point.getX() >= height or point.getX() < 0 or point.getY() >= width or point.getY() < 0)
         return;
     colorMap[point.getX()][point.getY()] = color;
+    if (not drawnMap[point.getX()][point.getY()])
+    {
+        drawnMap[point.getX()][point.getY()] = true;
+        drawnPoints.push_back(point);
+    }
 }
 
 const vector<Point<int>>& Textures::getDrawnPoints()
@@ -181,6 +186,11 @@ const vector<Point<int>>& Textures::getDrawnPoints()
 int Textures::getHeight() const
 {
     return height;
+}
+
+vector<uint8_t> Textures::getColor(const Point<int>& point)
+{
+    return colorMap[point.getX()][point.getY()];
 }
 
 vector<uint8_t> Textures::getNormal(const Point<int>& point)

@@ -31,11 +31,15 @@ private:
     Point<int> nextToTop(stack<Point<int>> &S);
 
 public:
+    ConvexHull();
+
     ConvexHull(const vector<Point<int>>& points);
 
     vector<Point<int>> getContour();
 
     void computeConvexHull();
+
+    void setContour(const vector<Point<int>>& contour);
 
     vector<double> computeMVC(const Point<int>& point);
 

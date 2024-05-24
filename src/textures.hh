@@ -55,6 +55,8 @@ public:
 
     vector<uint8_t> getNormal(const Point<int>& point);
 
+    vector<uint8_t> getColor(const Point<int>& point);
+
     const vector<Point<int>>& getDrawnPoints();
 
     void save(string dirname = ".", string name = "");
