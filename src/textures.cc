@@ -9,22 +9,14 @@ Textures::Textures(int width, int height)
 
     drawnMap = vector<vector<bool>> (height, vector<bool> (width, false));
     colorMap = vector<vector<vector<uint8_t>>> (height, vector<vector<uint8_t>> (width, vector<uint8_t> (3, 0)));
-    normalMap = vector<vector<vector<uint8_t>>> (height, vector<vector<uint8_t>> (width, vector<uint8_t> (3, 0)));
+    normalMap = vector<vector<vector<uint8_t>>> (height, vector<vector<uint8_t>> (width, {0, 0, 0}));
+    displacementMap = vector<vector<vector<uint8_t>>> (height, vector<vector<uint8_t>> (width, {0, 0, 0}));
 }
 
 Textures::Textures() {}
 
 vector<double> Textures::computeNormal(const Point<int>& point, const Point<int>& center, int radius)
 {
-    // int i = point.getX();
-    // int j = point.getY();
-    // int x = center.getX();
-    // int y = center.getY();
-    // double normX = i - x;
-    // double normY = j - y;
-    // double normZ = sqrt(pow(radius, 2) - pow(Point<int>::euclidianDistance(point, center), 2));
-    // double unitFactor = sqrt(pow(normX, 2) + pow(normY, 2) + pow(normZ, 2));
-    // return {normX / unitFactor, normY / unitFactor, normZ / unitFactor};
     double factor = Point<int>::euclidianDistance(point, center) / radius * 3;
     double red = factor, green = 0, blue = 0;
     if (factor > 1)
@@ -166,16 +158,51 @@ void Textures::drawPoints(const vector<Point<int>>& points, vector<uint8_t> colo
     }
 }
 
-void Textures::drawPoint(const Point<int>& point, vector<uint8_t> color)
+void Textures::drawPoint(const Point<int>& point, vector<uint8_t> color, vector<uint8_t> normal, vector<uint8_t> displacement)
 {
     if (point.getX() >= height or point.getX() < 0 or point.getY() >= width or point.getY() < 0)
         return;
     colorMap[point.getX()][point.getY()] = color;
+    normalMap[point.getX()][point.getY()] = normal;
+    displacementMap[point.getX()][point.getY()] = displacement;
     if (not drawnMap[point.getX()][point.getY()])
     {
         drawnMap[point.getX()][point.getY()] = true;
         drawnPoints.push_back(point);
     }
+}
+
+void Textures::scale(uint ratio)
+{
+    int newHeight = ratio * height, newWidth = width * ratio;
+    vector<vector<bool>> newDrawnMap = vector<vector<bool>> (newHeight, vector<bool> (newWidth, false));
+    vector<vector<vector<uint8_t>>> newColorMap = vector<vector<vector<uint8_t>>> (newHeight, vector<vector<uint8_t>> (newWidth, vector<uint8_t> (3, 0)));
+    vector<vector<vector<uint8_t>>> newNormalMap = vector<vector<vector<uint8_t>>> (newHeight, vector<vector<uint8_t>> (newWidth, vector<uint8_t> (3, 0)));
+    vector<Point<int>> newDrawnPoints; 
+
+    for (const Point<int>& point : drawnPoints)
+    {
+        Point<int> basePoint = point * ratio;
+        vector<uint8_t> currColor = colorMap[point.getX()][point.getY()];
+        vector<uint8_t> currNormal = normalMap[point.getX()][point.getY()];
+        for (uint i = 0; i < ratio; ++i)
+        {
+            for (uint j = 0; j < ratio; ++j)
+            {
+                Point<int> currPoint = basePoint + Point<int>(i, j);
+                newDrawnPoints.push_back(currPoint);
+                newDrawnMap[currPoint.getX()][currPoint.getY()] = true;
+                newColorMap[currPoint.getX()][currPoint.getY()] = currColor;
+                newNormalMap[currPoint.getX()][currPoint.getY()] = currNormal;
+            }
+        }
+    }
+    drawnMap = newDrawnMap;
+    drawnPoints = newDrawnPoints;
+    colorMap = newColorMap;
+    normalMap = newNormalMap;
+    height = newHeight;
+    width = newWidth;
 }
 
 const vector<Point<int>>& Textures::getDrawnPoints()
@@ -195,10 +222,14 @@ vector<uint8_t> Textures::getColor(const Point<int>& point)
 
 vector<uint8_t> Textures::getNormal(const Point<int>& point)
 {
-    int x = point.getX();
-    int y = point.getY();
-    return normalMap[x][y];
+    return normalMap[point.getX()][point.getY()];
 }
+
+vector<uint8_t> Textures::getDisplacement(const Point<int>& point)
+{
+    return displacementMap[point.getX()][point.getY()];
+}
+
 
 void Textures::save(string dirname, string name)
 {
@@ -209,16 +240,22 @@ void Textures::save(string dirname, string name)
 
     Image colorImg;
     filesystem::path fullPath = filesystem::path(dirname) / filesystem::path(name + "color_map.png");
-    colorImg.save(colorMap, fullPath);
+    colorImg.save(colorMap, fullPath, 3);
 
     Image normalImg;
     fullPath = filesystem::path(dirname) / filesystem::path(name + "normal_map.png");
-    normalImg.save(normalMap, fullPath);
+    normalImg.save(normalMap, fullPath, 3);
+
+    Image displacementImg;
+    fullPath = filesystem::path(dirname) / filesystem::path(name + "displacement_map.png");
+    displacementImg.save(displacementMap, fullPath, 3);
 }
 
 void Textures::clear()
 {
     colorMap = vector<vector<vector<uint8_t>>> (height, vector<vector<uint8_t>> (width, vector<uint8_t> (3, 0)));
     normalMap = vector<vector<vector<uint8_t>>> (height, vector<vector<uint8_t>> (width, vector<uint8_t> (3, 0)));
+    displacementMap = vector<vector<vector<uint8_t>>> (height, vector<vector<uint8_t>> (width, vector<uint8_t> (1, 0)));
     drawnMap = vector<vector<bool>> (height, vector<bool> (width, false));
+    drawnPoints = vector<Point<int>>(0);
 }

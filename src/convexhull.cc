@@ -7,6 +7,11 @@ ConvexHull::ConvexHull(const vector<Point<int>> &points)
     this->points = points;
 }
 
+void ConvexHull::computeBorder(uint samples, uint mapSize)
+{
+    
+}
+
 Point<int> ConvexHull::nextToTop(stack<Point<int>> &S)
 {
     Point<int> p = S.top();

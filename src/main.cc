@@ -6,7 +6,6 @@
 
 #include <iostream>
 #include <sstream>
-#include <iomanip>
 #include <unordered_map>
 
 string dtostr(double value)
@@ -16,7 +15,7 @@ string dtostr(double value)
     return oss.str();
 }
 
-string getField(const unordered_map<string, string>& configMap, string key)
+string getField(const unordered_map<string, string> &configMap, string key)
 {
     unordered_map<string, string>::const_iterator it = configMap.find(key);
     if (it != configMap.end())
@@ -25,7 +24,7 @@ string getField(const unordered_map<string, string>& configMap, string key)
     return "";
 }
 
-vector<Point<int>> runDla(unordered_map<string, string>& configMap)
+vector<Point<int>> runDla(unordered_map<string, string> &configMap)
 {
     string centersFilename = getField(configMap, "centers_file");
     int radius = stoi(getField(configMap, "radius"));
@@ -45,13 +44,13 @@ vector<Point<int>> runDla(unordered_map<string, string>& configMap)
         cout << endl;
 
         vector<Point<double>> dlaPoints = dla.getPoints();
-        vector<Point<int>> dlaPointsInt = vector<Point<int>> (dlaPoints.begin(), dlaPoints.end());
+        vector<Point<int>> dlaPointsInt = vector<Point<int>>(dlaPoints.begin(), dlaPoints.end());
 
         ofstream outFile("centers_file.txt");
         int maxCoord = dla.getMaxCoord();
         int mapSize = (maxCoord + 1) * 2 + radius;
         outFile << mapSize << endl;
-        for (Point<int>& point : dlaPointsInt)
+        for (Point<int> &point : dlaPointsInt)
         {
             point += {maxCoord, maxCoord};
             outFile << point.getX() << " " << point.getY() << endl;
@@ -60,13 +59,13 @@ vector<Point<int>> runDla(unordered_map<string, string>& configMap)
         textures = Textures(mapSize, mapSize);
         textures.drawCircles(dlaPointsInt, color, radius);
     }
-    else 
+    else
         textures.readSphereCenterPoints(centersFilename, color, radius);
     configMap.insert({"img_size", to_string(textures.getHeight())});
     return textures.getDrawnPoints();
 }
 
-vector<vector<Point<int>>> runKMeans(const unordered_map<string, string>& configMap, const vector<Point<int>>& drawnPoints)
+vector<vector<Point<int>>> runKMeans(const unordered_map<string, string> &configMap, const vector<Point<int>> &drawnPoints)
 {
     int maxIt = stoi(getField(configMap, "max_it"));
     int k = stoi(getField(configMap, "k"));
@@ -80,13 +79,13 @@ vector<vector<Point<int>>> runKMeans(const unordered_map<string, string>& config
 
     vector<vector<Point<int>>> clusters = kmeans.getClusters();
     vector<Point<int>> centroids = kmeans.getCentroids();
-    vector<double> clusterRatios (k);
+    vector<double> clusterRatios(k);
     for (uint i = 0; i < k; ++i)
         clusterRatios[i] = kmeans.clusterCircleRatio(i);
     vector<bool> modifiedCluster(k, false);
 
     Textures textures(mapSize, mapSize);
-    for (const vector<Point<int>>& cluster : clusters)
+    for (const vector<Point<int>> &cluster : clusters)
     {
         textures.drawPoints(cluster, {uint8_t(rand() / double(RAND_MAX) * 255),
                                       uint8_t(rand() / double(RAND_MAX) * 255),
@@ -100,13 +99,13 @@ vector<vector<Point<int>>> runKMeans(const unordered_map<string, string>& config
         uint clusterSize = clusters[j].size();
         if (clusterSize > 1)
         {
-            cout << "[KMeans] Cluster " << j << " ratio: " << clusterRatios[j] << endl; 
+            cout << "[KMeans] Cluster " << j << " ratio: " << clusterRatios[j] << endl;
             double clusterRatio = clusterRatios[j];
             bool isCircle = clusterRatio >= minCircularity;
             modifiedCluster[j] = true;
-            int it = 1;
-            int newK = 2;
-            int maxK = clusterSize / minClusterSize;
+            uint it = 1;
+            uint newK = 2;
+            uint maxK = clusterSize / minClusterSize;
             while (maxK >= 2 and not isCircle)
             {
                 if (it % 5 == 0)
@@ -120,7 +119,7 @@ vector<vector<Point<int>>> runKMeans(const unordered_map<string, string>& config
                     isCircle = isCircle and (newKmeans.clusterCircleRatio(l) >= minCircularity);
                 isCircle = isCircle or (newK == maxK);
 
-                if (isCircle) 
+                if (isCircle)
                 {
                     vector<vector<Point<int>>> newClusters = newKmeans.getClusters();
                     vector<Point<int>> newCentroids = newKmeans.getCentroids();
@@ -143,8 +142,8 @@ vector<vector<Point<int>>> runKMeans(const unordered_map<string, string>& config
     for (uint i = 0; i < clusters.size(); ++i)
     {
         textures.drawPoints(clusters[i], {uint8_t(rand() / double(RAND_MAX) * 255),
-                                      uint8_t(rand() / double(RAND_MAX) * 255),
-                                      uint8_t(rand() / double(RAND_MAX) * 255)});
+                                          uint8_t(rand() / double(RAND_MAX) * 255),
+                                          uint8_t(rand() / double(RAND_MAX) * 255)});
     }
 
     textures.save(imgDir, "final_");
@@ -152,48 +151,40 @@ vector<vector<Point<int>>> runKMeans(const unordered_map<string, string>& config
     return clusters;
 }
 
-
-void textureParametrizaion(const unordered_map<string, string>& configMap, const vector<vector<Point<int>>>& clusters)
+void textureParametrizaion(const unordered_map<string, string> &configMap, const vector<vector<Point<int>>> &clusters)
 {
     int mapSize = stoi(getField(configMap, "img_size"));
     string imgDir = getField(configMap, "img_dir");
-
-    Textures textures(mapSize, mapSize);
 
     Textures circle(1000, 1000);
     Point<int> center = {500, 500};
     double radius = 400;
     circle.drawCircle(center, {255, 0, 0}, radius, true);
 
+    // Load textures
+    string textureNamePrefix = getField(configMap, "texture_name_prefix");
     Image lichen;
-    vector<vector<vector<uint8_t>>> lichenColorMap = lichen.load("lichen.png");
+    vector<vector<vector<uint8_t>>> lichenColorMap = lichen.load(textureNamePrefix + "color_map.png", 3);
+    vector<vector<vector<uint8_t>>> lichenOpacityMap = lichen.load(textureNamePrefix + "opacity_map.png", 1);
+    vector<vector<vector<uint8_t>>> lichenNormalMap = lichen.load(textureNamePrefix + "normal_map.png", 3);
+    vector<vector<vector<uint8_t>>> lichenDisplacementMap = lichen.load(textureNamePrefix + "displacement_map.png", 3);
     int height = lichenColorMap.size();
     int width = lichenColorMap[0].size();
+
+    // 
     Textures lichenTexture(height, width);
     for (int i = 0; i < height; ++i)
     {
         for (int j = 0; j < width; ++j)
-        {
-            bool black = true;
-            for (int k = 0; k < 3; ++k)
-            {
-                if (lichenColorMap[i][j][k] > 20)
-                {
-                    black = false;
-                    break;
-                }
-            }
-            if (not black)
-                lichenTexture.drawPoint({i, j}, lichenColorMap[i][j]);
-        }
+            if (lichenOpacityMap[i][j][0] != 0)
+                lichenTexture.drawPoint({i, j}, lichenColorMap[i][j], lichenNormalMap[i][j], lichenDisplacementMap[i][j]);
     }
     ConvexHull lichenConvexHull(lichenTexture.getDrawnPoints());
     lichenConvexHull.computeConvexHull();
-    cout << lichenTexture.getDrawnPoints().size() << endl;
     vector<Point<int>> lichenContour = lichenConvexHull.getContour();
 
     uint contourSize = lichenContour.size();
-    vector<Point<int>> circleHull = vector<Point<int>> (contourSize);
+    vector<Point<int>> circleHull = vector<Point<int>>(contourSize);
     double currentAngle = 0;
     double perimeter = lichenConvexHull.getPerimeter();
     for (uint i = 0; i < contourSize; ++i)
@@ -207,33 +198,60 @@ void textureParametrizaion(const unordered_map<string, string>& configMap, const
     ConvexHull circleConvexHull;
     circleConvexHull.setContour(circleHull);
     vector<Point<int>> circleDrawnPoints = circle.getDrawnPoints();
-    for (const Point<int>& point : circleDrawnPoints)
+    for (const Point<int> &point : circleDrawnPoints)
     {
         vector<double> weights = circleConvexHull.computeMVC(point);
         Point<int> targetPoint = {0, 0};
         for (uint i = 0; i < contourSize; ++i)
         {
-            if (isnan(weights[i]))
-                break;
             int x = targetPoint.getX() + lichenContour[i].getX() * weights[i];
             int y = targetPoint.getY() + lichenContour[i].getY() * weights[i];
             targetPoint = Point<int>(x, y);
         }
-        circle.drawPoint(point, lichenTexture.getColor(targetPoint));
+
+        circle.drawPoint(point,
+                         lichenTexture.getColor(targetPoint),
+                         lichenTexture.getNormal(targetPoint),
+                         lichenTexture.getDisplacement(targetPoint));
     }
     circle.save(imgDir, "circle_proxy_");
 
+    int scaleRatio = stoi(getField(configMap, "scale_ratio"));
+    Textures textures(mapSize * scaleRatio, mapSize * scaleRatio);
     for (uint i = 0; i < clusters.size(); ++i)
     {
-        ConvexHull convexHull(clusters[i]);
+        if (clusters[i].size() == 0)
+            continue;
+
+        // Upscale clusters if needed
+        vector<Point<int>> scaledCluster;
+        if (scaleRatio == 1)
+            scaledCluster = clusters[i];
+        else
+        {
+            for (const Point<int> &point : clusters[i])
+            {
+                Point<int> basePoint = point * scaleRatio;
+                for (uint i = 0; i < scaleRatio; ++i)
+                {
+                    for (uint j = 0; j < scaleRatio; ++j)
+                    {
+                        Point<int> currPoint = basePoint + Point<int>(i, j);
+                        scaledCluster.push_back(currPoint);
+                    }
+                }
+            }
+        }
+
+        ConvexHull convexHull(scaledCluster);
         convexHull.computeConvexHull();
         vector<Point<int>> contour = convexHull.getContour();
 
         // Compute the circle hull using the proportions of the cluster hull
         uint contourSize = contour.size();
-        vector<Point<int>> circleHull = vector<Point<int>> (contourSize);
+        vector<Point<int>> circleHull = vector<Point<int>>(contourSize);
+        perimeter = convexHull.getPerimeter();
         double currentAngle = 0;
-        double perimeter = convexHull.getPerimeter();
         for (uint i = 0; i < contourSize; ++i)
         {
             int x = cos(currentAngle) * radius + center.getX();
@@ -242,36 +260,29 @@ void textureParametrizaion(const unordered_map<string, string>& configMap, const
             currentAngle += (convexHull.getSideLength(i) / perimeter) * 2 * M_PI;
         }
 
-
         // Translate cluster coordinates to circle coordinates
-        for (const Point<int>& point : clusters[i])
+        for (const Point<int> &point : scaledCluster)
         {
             vector<double> weights = convexHull.computeMVC(point);
             Point<int> targetPoint = {0, 0};
             for (uint i = 0; i < contourSize; ++i)
             {
-                if (isnan(weights[i]))
-                    break;
                 int x = targetPoint.getX() + circleHull[i].getX() * weights[i];
                 int y = targetPoint.getY() + circleHull[i].getY() * weights[i];
                 targetPoint = Point<int>(x, y);
             }
-            textures.drawPoint(point, circle.getColor(targetPoint));
+            textures.drawPoint(point,
+                               circle.getColor(targetPoint),
+                               circle.getNormal(targetPoint),
+                               circle.getDisplacement(targetPoint));
         }
-
-        vector<uint8_t> color = {uint8_t(rand() / double(RAND_MAX) * 255),
-                                 uint8_t(rand() / double(RAND_MAX) * 255),
-                                 uint8_t(rand() / double(RAND_MAX) * 255)};
-        // for (uint i = 0; i < contourSize; ++i)
-        //     textures.drawLine(contour[i], contour[(i + 1) % contourSize], color);
-
-        // textures.drawPoints(contour, {0, 255, 255});
+        textures.drawPoints(contour, {255, 0, 0});
     }
 
     textures.save(imgDir, "textured_");
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     if (argc != 2)
     {
@@ -296,7 +307,7 @@ int main(int argc, char** argv)
             continue;
         stringstream lineStream(line);
         string field, value;
-        if (lineStream >> field and lineStream >> value) 
+        if (lineStream >> field and lineStream >> value)
         {
             field.pop_back();
             lineStream >> value;
@@ -304,9 +315,9 @@ int main(int argc, char** argv)
         }
     }
 
-    const vector<Point<int>>& dlaPoints = runDla(configMap);
+    const vector<Point<int>> &dlaPoints = runDla(configMap);
 
-    const vector<vector<Point<int>>>& clusters = runKMeans(configMap, dlaPoints);
+    const vector<vector<Point<int>>> &clusters = runKMeans(configMap, dlaPoints);
 
     textureParametrizaion(configMap, clusters);
 }

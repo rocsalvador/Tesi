@@ -32,11 +32,22 @@ void Point<T>::operator+=(const Point<T>& p2)
     y += p2.getY();
 }
 
-
 template<class T>
 bool Point<T>::operator!=(const Point<T>& p2) const
 {
     return (not (this->getX() == p2.getX())) or (not (this->getY() == p2.getY()));
+}
+
+template<class T>
+Point<T> Point<T>::operator*(T multiplier) const
+{
+    return {x * multiplier, y * multiplier};
+}
+
+template<class T>
+Point<T> Point<T>::operator+(const Point<T>& p) const
+{
+    return {x + p.getX(), y + p.getY()};
 }
 
 template<class T>

@@ -39,6 +39,8 @@ public:
 
     void computeConvexHull();
 
+    void computeBorder(uint samples, uint mapSize);
+
     void setContour(const vector<Point<int>>& contour);
 
     vector<double> computeMVC(const Point<int>& point);

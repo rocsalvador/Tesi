@@ -27,6 +27,10 @@ public:
 
     bool operator!=(const Point<T>& p2) const;
 
+    Point<T> operator*(T multiplier) const;
+
+    Point<T> operator+(const Point<T>& p) const;
+
     Point(pair<T, T> p);
 
     Point();

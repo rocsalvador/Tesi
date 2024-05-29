@@ -17,6 +17,7 @@ private:
 
     vector<vector<vector<uint8_t>>> colorMap;
     vector<vector<vector<uint8_t>>> normalMap;
+    vector<vector<vector<uint8_t>>> displacementMap;
 
     vector<Point<int>> drawnPoints;
 
@@ -43,7 +44,7 @@ public:
 
     void drawPoints(const vector<Point<int>>& points, vector<uint8_t> color);
 
-    void drawPoint(const Point<int>& point, vector<uint8_t> color);
+    void drawPoint(const Point<int>& point, vector<uint8_t> color, vector<uint8_t> normal = vector<uint8_t> (0), vector<uint8_t> displacement = vector<uint8_t> (0));
 
     void drawCircle(const Point<int>& point, vector<uint8_t> color, int radius, bool computeNormals = false);
 
@@ -51,11 +52,15 @@ public:
 
     void drawLine(Point<int> a, Point<int> b, vector<uint8_t> color);
 
+    void scale(uint ratio);
+
     int getHeight() const;
 
     vector<uint8_t> getNormal(const Point<int>& point);
 
     vector<uint8_t> getColor(const Point<int>& point);
+
+    vector<uint8_t> getDisplacement(const Point<int>& point);
 
     const vector<Point<int>>& getDrawnPoints();
 

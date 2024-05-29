@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <queue>
+#include <stack>
 #include <limits>
 using namespace std;
 
@@ -38,6 +39,8 @@ private:
 
     vector<vector<Point<int>>> clustersEdges;
 
+    vector<pair<Point<int>, Point<int>>> clustersBoundingBoxes;
+
     vector<vector<bool>> map;
 
     vector<double> clustersRatios;
@@ -66,6 +69,8 @@ public:
     vector<vector<Point<int>>> getClusters();
 
     vector<Point<int>> getCentroids();
+
+    vector<Point<int>> getSortedEdges(uint i);
 };
 
 #endif
