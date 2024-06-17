@@ -1,10 +1,12 @@
 # Simulation and visualization of lichens growth in cultural heritage 3D models
 
+I use [stb](https://github.com/nothings/stb/tree/master) single-file public domain libraries for C/C++ to read/write images.
+
 ## How to run
 
 ```bash
 # Get the repo
-git clone https://github.com/rocsalvador/Tesi.git
+git clone --recurse-submodules  https://github.com/rocsalvador/Tesi.git
 cd Tesi
 ```
 
