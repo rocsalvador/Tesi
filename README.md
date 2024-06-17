@@ -17,13 +17,14 @@ make -j
 ## Run
 
 ```bash
+# Make stack size unlimited because of how images are saved for now
 ulimit -s unlimited
 ./lichens config.conf
 ```
 
 ## Configure
 
-To configure the DLA, KMeans and parametrizetion modify the contents of the config.conf file:
+To configure the DLA, KMeans and parametrization modify the contents of the config.conf file:
 ```
 img_dir: img
 
