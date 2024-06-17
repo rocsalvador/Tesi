@@ -21,7 +21,8 @@ private:
     double aggregateDistance;
     double moveDistance;
 
-    double maxCoord;
+    Point<double> maxCoord;
+    Point<double> minCoord;
 
     // Aggregation probability parameters
     double alpha;
@@ -48,7 +49,7 @@ public:
 
     vector<Point<double>> getPoints() const;
 
-    double getMaxCoord() const;
+    vector<Point<double>> getBoundingBox() const;
 };
 
 #endif

@@ -15,7 +15,8 @@ DLA::DLA(double radius, double alpha, double sigma, double tau, double p)
     
     this->boundingCircleRadius = 4 * radius;
     this->boundingCircleCenter = Point<double> (0, 0); 
-    this->maxCoord = 0;
+    this->maxCoord = Point<double>(numeric_limits<double>::min(), numeric_limits<double>::min());
+    this->minCoord = Point<double>(numeric_limits<double>::max(), numeric_limits<double>::max());
     this->generationDistance = boundingCircleRadius * 1.1;
     this->deathRadius = boundingCircleRadius * 1.2;
 }
@@ -38,9 +39,9 @@ Point<double> DLA::getRandomPoint()
     return {x, y};
 }
 
-double DLA::getMaxCoord() const
+vector<Point<double>> DLA::getBoundingBox() const
 {
-    return maxCoord;
+    return {minCoord, maxCoord};
 }
 
 bool DLA::aggregatePoint(Point<double>& point)
@@ -56,7 +57,10 @@ bool DLA::aggregatePoint(Point<double>& point)
                 if (r <= prob)
                 {
                     cluster.push_back(point);
-                    maxCoord = max(max(abs(point.getX()), maxCoord), abs(point.getY()));
+                    maxCoord = Point<double>(max(point.getX(), maxCoord.getX()),
+                                             max(point.getY(), maxCoord.getY()));
+                    minCoord = Point<double>(min(point.getX(), minCoord.getX()),
+                                             min(point.getY(), minCoord.getY()));
                     double centerDistance = Point<double>::euclidianDistance(point, boundingCircleCenter);
                     if (centerDistance > boundingCircleRadius)
                     {

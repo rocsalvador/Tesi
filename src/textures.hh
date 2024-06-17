@@ -8,12 +8,14 @@
 #include <filesystem>
 #include <fstream>
 #include <cassert>
+#include <queue>
 using namespace std;
 
 class Textures
 {
 private:
     int height, width;
+    int components;
 
     vector<vector<vector<uint8_t>>> colorMap;
     vector<vector<vector<uint8_t>>> normalMap;
@@ -26,7 +28,7 @@ private:
     vector<double> computeNormal(const Point<int>& point, const Point<int>& center, int radius);
 
 public:
-    Textures(int width, int height);
+    Textures(int width, int height, int components = 3);
 
     Textures();
 
@@ -50,11 +52,15 @@ public:
 
     void drawCircles(const vector<Point<int>>& points, vector<uint8_t> color, int radius, bool computeNormals = false);
 
+    void fillShape(const Point<int>& center);
+
     void drawLine(Point<int> a, Point<int> b, vector<uint8_t> color);
 
     void scale(uint ratio);
 
     int getHeight() const;
+
+    int getWidth() const;
 
     vector<uint8_t> getNormal(const Point<int>& point);
 

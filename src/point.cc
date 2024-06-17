@@ -51,6 +51,19 @@ Point<T> Point<T>::operator+(const Point<T>& p) const
 }
 
 template<class T>
+Point<T> Point<T>::operator-(const Point<T>& p) const
+{
+    return {x - p.getX(), y - p.getY()};
+}
+
+template<class T>
+void Point<T>::operator/=(double div)
+{
+    this->x = this->x / div;
+    this->y = this->y / div;
+}
+
+template<class T>
 Point<T>::Point() {}
 
 template<class T>

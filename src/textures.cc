@@ -2,13 +2,14 @@
 
 #include <iostream>
 
-Textures::Textures(int width, int height)
+Textures::Textures(int width, int height, int components)
 {
     this->height = height;
     this->width = width;
+    this->components = components;
 
     drawnMap = vector<vector<bool>> (height, vector<bool> (width, false));
-    colorMap = vector<vector<vector<uint8_t>>> (height, vector<vector<uint8_t>> (width, vector<uint8_t> (3, 0)));
+    colorMap = vector<vector<vector<uint8_t>>> (height, vector<vector<uint8_t>> (width, vector<uint8_t> (components, 0)));
     normalMap = vector<vector<vector<uint8_t>>> (height, vector<vector<uint8_t>> (width, {0, 0, 0}));
     displacementMap = vector<vector<vector<uint8_t>>> (height, vector<vector<uint8_t>> (width, {0, 0, 0}));
 }
@@ -38,16 +39,15 @@ vector<double> Textures::computeNormal(const Point<int>& point, const Point<int>
 
 void Textures::drawCircle(const Point<int>& point, vector<uint8_t> color, int radius, bool computeNormals)
 {
-    assert(point.getX() < width and point.getY() < height);
     int x = point.getX();
     int y = point.getY();
-    for (int j = min(height - 1, y + radius); j >= max(y - radius, 0); --j)
+    for (int j = min(width - 1, y + radius); j >= max(y - radius, 0); --j)
     {
         int i = x;
         double distance = Point<int>::euclidianDistance({x, y}, {i, j});
         while (distance <= radius)
         {
-            if (i < width)
+            if (i < height)
             {
                 if (not drawnMap[i][j])
                 {
@@ -135,9 +135,7 @@ void Textures::readSphereCenterPoints(string filename,  vector<uint8_t> color, i
     }
 
     int mapSize;
-    centersFile >> mapSize;
-    this->height = mapSize;
-    this->width = mapSize;
+    centersFile >> height >> width;
 
     drawnMap = vector<vector<bool>> (height, vector<bool> (width, false));
     colorMap = vector<vector<vector<uint8_t>>> (height, vector<vector<uint8_t>> (width, vector<uint8_t> (3, 0)));
@@ -161,7 +159,7 @@ void Textures::drawPoints(const vector<Point<int>>& points, vector<uint8_t> colo
 void Textures::drawPoint(const Point<int>& point, vector<uint8_t> color, vector<uint8_t> normal, vector<uint8_t> displacement)
 {
     if (point.getX() >= height or point.getX() < 0 or point.getY() >= width or point.getY() < 0)
-        return;
+        return;    
     colorMap[point.getX()][point.getY()] = color;
     normalMap[point.getX()][point.getY()] = normal;
     displacementMap[point.getX()][point.getY()] = displacement;
@@ -205,6 +203,32 @@ void Textures::scale(uint ratio)
     width = newWidth;
 }
 
+void Textures::fillShape(const Point<int>& center)
+{
+    vector<vector<bool>> visitedMap(height, vector<bool>(width, false));
+    queue<Point<int>> Q;
+    Q.push(center);
+    while (not Q.empty())
+    {
+        Point<int> currentPoint = Q.front();
+        Q.pop();
+        int x = currentPoint.getX();
+        int y = currentPoint.getY();
+        if (visitedMap[x][y])
+            continue;
+        visitedMap[x][y] = true;
+        drawPoint({x, y}, {255, 0, 0});
+        if (x > 0 and not visitedMap[x - 1][y] and not drawnMap[x - 1][y])
+            Q.push({x - 1, y});
+        if (x < height - 1 and not visitedMap[x + 1][y] and not drawnMap[x + 1][y])
+            Q.push({x + 1, y});
+        if (y > 0 and not visitedMap[x][y - 1] and not drawnMap[x][y - 1])
+            Q.push({x, y - 1});
+        if (y < width - 1 and not visitedMap[x][y + 1] and not drawnMap[x][y + 1])
+            Q.push({x, y + 1});
+    }
+}
+
 const vector<Point<int>>& Textures::getDrawnPoints()
 {
     return drawnPoints;
@@ -213,6 +237,11 @@ const vector<Point<int>>& Textures::getDrawnPoints()
 int Textures::getHeight() const
 {
     return height;
+}
+
+int Textures::getWidth() const
+{
+    return width;
 }
 
 vector<uint8_t> Textures::getColor(const Point<int>& point)
@@ -238,17 +267,22 @@ void Textures::save(string dirname, string name)
         filesystem::create_directory(dirname);
     }
 
-    Image colorImg;
+    Image image;
     filesystem::path fullPath = filesystem::path(dirname) / filesystem::path(name + "color_map.png");
-    colorImg.save(colorMap, fullPath, 3);
+    image.save(colorMap, fullPath, components);
 
-    Image normalImg;
     fullPath = filesystem::path(dirname) / filesystem::path(name + "normal_map.png");
-    normalImg.save(normalMap, fullPath, 3);
+    image.save(normalMap, fullPath, 3);
 
-    Image displacementImg;
     fullPath = filesystem::path(dirname) / filesystem::path(name + "displacement_map.png");
-    displacementImg.save(displacementMap, fullPath, 3);
+    image.save(displacementMap, fullPath, 3);
+
+    vector<vector<vector<uint8_t>>> opacityMap = vector<vector<vector<uint8_t>>> (height, vector<vector<uint8_t>> (width, {0}));
+    for (const Point<int>& point : drawnPoints)
+        if (drawnMap[point.getX()][point.getY()])
+            opacityMap[point.getX()][point.getY()][0] = 255;
+    fullPath = filesystem::path(dirname) / filesystem::path(name + "opacity_map.png");
+    image.save(opacityMap, fullPath, 1);
 }
 
 void Textures::clear()

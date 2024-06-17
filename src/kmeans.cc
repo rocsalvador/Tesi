@@ -117,14 +117,18 @@ vector<Point<int>> KMeans::getSortedEdges(uint i)
     {
         int x = currentPoint.getX(), y = currentPoint.getY();
         bool foundEdge = false;
-        for (uint j = max(x - 1, 0); j <= min(maxValue, x + 1); ++j)
+        bool pushed = false;
+        for (uint j = max(x - 1, 0); not pushed and j <= min(maxValue, x + 1); ++j)
         {
-            for (uint l = max(y - 1, 0); l <= min(maxValue, y + 1); ++l)
+            for (uint l = max(y - 1, 0); not pushed and l <= min(maxValue, y + 1); ++l)
             {
                 if (clusterMap[j][l])
                 {
                     if (foundEdge)
+                    {
                         S.push(k - 1);
+                        pushed = true;
+                    }
                     else 
                     {
                         ++k;

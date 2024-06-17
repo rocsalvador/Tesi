@@ -27,9 +27,13 @@ public:
 
     bool operator!=(const Point<T>& p2) const;
 
+    void operator/=(double div);
+
     Point<T> operator*(T multiplier) const;
 
     Point<T> operator+(const Point<T>& p) const;
+    
+    Point<T> operator-(const Point<T>& p) const;
 
     Point(pair<T, T> p);
 
