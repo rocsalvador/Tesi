@@ -35,7 +35,7 @@ void Image::save(const vector<vector<vector<uint8_t>>>& imageData, string filena
     uint height = imageData.size();
     assert(height > 0);
     uint width = imageData[0].size();
-    uint8_t imageDataC[width * height * components];
+    uint8_t* imageDataC = (uint8_t *) malloc(height * width * components * sizeof(uint8_t));
     for (uint i = 0; i < height; ++i)
         for (uint j = 0; j < width; ++j)
             for (uint k = 0; k < components; ++k)

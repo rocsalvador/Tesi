@@ -19,8 +19,6 @@ make -j
 ## Run
 
 ```bash
-# Make stack size unlimited because of how images are saved for now
-ulimit -s unlimited
 ./lichens config.conf
 ```
 
