@@ -1,0 +1,10 @@
+*tests
+.vscode
+report/out
+gep
+obj
+__pycache__
+stb
+*patch
+py
+lichens

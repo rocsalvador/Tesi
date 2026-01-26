@@ -23,7 +23,8 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cc
 
 pdf:
 	mkdir -p $(REPORT_DIR)/out
-	pdflatex --output-directory $(REPORT_DIR)/out $(REPORT_DIR)/report.tex
+	cd $(REPORT_DIR) && pdflatex --output-directory out main.tex
+	cd $(REPORT_DIR) && pdflatex --output-directory out main.tex
 
 clean:
 	rm -rf $(REPORT_DIR)/out $(OBJ_DIR) $(TARGET)
